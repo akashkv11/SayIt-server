@@ -6,6 +6,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { PrismaService } from '../prisma/prisma.service';
 
 @WebSocketGateway({
   cors: {
@@ -16,6 +17,8 @@ import { Server, Socket } from 'socket.io';
 export class ChatGateway {
   @WebSocketServer() server: Server;
   private clients = new Map<string, string>(); // Map of userId -> socketId
+
+  constructor(private prisma: PrismaService) {}
 
   handleConnection(client: any) {
     console.log('Client connected:', client.id);
@@ -43,22 +46,41 @@ export class ChatGateway {
   }
   // Listen for incoming messages
   @SubscribeMessage('sendMessage')
-  handleMessage(client: Socket, payload: string): void {
+  async handleMessage(client: Socket, payload: string): Promise<void> {
     console.log('Message received:', payload);
-    this.server.emit('receiveMessage', payload); // Broadcast to all clients
+
+    // Store the message in the database
+    await this.prisma.message.create({
+      data: {
+        content: payload,
+        type: 'BROADCAST',
+      },
+    });
+
+    this.server.emit('receiveMessage', payload);
   }
 
   @SubscribeMessage('sendDirectMessage')
-  sendDirectMessage(
+  async sendDirectMessage(
     client: any,
-
     payload: { recipientId: string; message: string },
-  ): void {
+  ): Promise<void> {
     const senderId = [...this.clients.entries()].find(
       ([, id]) => id === client.id,
     )?.[0];
 
     const recipientSocketId = this.clients.get(payload.recipientId);
+
+    // Store the direct message in the database
+    await this.prisma.message.create({
+      data: {
+        content: payload.message,
+        type: 'DIRECT',
+        senderId: senderId,
+        recipientId: payload.recipientId,
+      },
+    });
+
     if (recipientSocketId) {
       this.server.to(recipientSocketId).emit('receiveDirectMessage', {
         senderId,
