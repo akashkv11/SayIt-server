@@ -33,7 +33,17 @@ export class ChatGateway {
     console.log(`Registered client: userId=${userId}, socketId=${client.id}`);
   }
 
-  handleDisconnect(client: any) {
+  @SubscribeMessage('disconnect_user')
+  async disconnectUser(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() userId: string,
+  ): Promise<void> {
+    this.clients.delete(userId);
+    client.disconnect();
+    console.log(`User manually disconnected: userId=${userId}`);
+  }
+
+  handleDisconnect(client: Socket) {
     const userId = [...this.clients.entries()].find(
       ([, id]) => id === client.id,
     )?.[0];
@@ -42,6 +52,8 @@ export class ChatGateway {
       console.log(
         `Client disconnected: userId=${userId}, socketId=${client.id}`,
       );
+      // Notify other clients about the disconnection
+      this.server.emit('user_disconnected', { userId });
     }
   }
   // Listen for incoming messages
