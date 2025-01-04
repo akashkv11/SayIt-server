@@ -13,30 +13,24 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
-        model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-  posts Post[]
+model User {
+  user_id          String   @id @default(uuid()) // Unique identifier for the user
+  user_username    String   @unique              // Username (unique constraint)
+  user_email       String?  @unique              // Optional email
+  user_password    String?                       // Optional password (hashed)
+  user_is_online    Boolean  @default(false)      // Online status
+  user_created_at   DateTime @default(now())      // Timestamp when the user was created
+  user_updated_at   DateTime @updatedAt           // Timestamp when the user was last updated
+  sent_messages     Message[] @relation("sent_messages") // Relationship for messages sent by this user
+  received_messages Message[] @relation("received_messages") // Relationship for messages received by this user
 }
-
-model Post {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  viewCount Int      @default(0)
-  author    User?    @relation(fields: [authorId], references: [id])
-  authorId  Int?
-}
-
 model Message {
-  id          Int      @id @default(autoincrement())
-  content     String
-  type        String   // 'BROADCAST' or 'DIRECT'
-  senderId    String?
-  recipientId String?
-  createdAt   DateTime @default(now())
+  message_id          String   @id @default(uuid()) // Unique identifier for the message
+  message_sender_id    String                              // ID of the sender
+  message_recipient_id String                              // ID of the recipient
+  message_content     String                              // The content of the message
+  message_created_at   DateTime @default(now())            // Timestamp when the message was created
+  sender      User     @relation("sent_messages", fields: [message_sender_id], references: [user_id])
+  recipient   User     @relation("received_messages", fields: [message_recipient_id], references: [user_id])
 }
+
