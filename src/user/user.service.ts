@@ -1,20 +1,16 @@
 import {
-  Injectable,
   ConflictException,
+  Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { User, Prisma } from '@prisma/client';
-import { JwtService } from '@nestjs/jwt';
+import { Prisma, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { PrismaService } from '../prisma/prisma.service';
 import { UserDto } from './dto/user.dto';
 
 @Injectable()
 export class UserService {
-  constructor(
-    private prisma: PrismaService,
-    private jwtService: JwtService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async create(data: UserDto): Promise<{ user: Omit<User, 'password'> }> {
     const existingUser = await this.prisma.user.findFirst({
