@@ -3,6 +3,7 @@ import * as dotenv from 'dotenv';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { CustomValidationPipe } from './common/pipes/validation.pipe';
+import { SuccessResponseInterceptor } from './common/interceptors/success-response.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -17,6 +18,7 @@ async function bootstrap() {
   dotenv.config();
 
   app.useGlobalPipes(new CustomValidationPipe());
+  app.useGlobalInterceptors(new SuccessResponseInterceptor());
 
   app.useGlobalFilters(new GlobalExceptionFilter());
   await app.listen(process.env.PORT ?? 3000);

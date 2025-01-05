@@ -7,12 +7,11 @@ import { Prisma, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserDto } from './dto/user.dto';
-
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  async create(data: UserDto): Promise<{ user: Omit<User, 'password'> }> {
+  async create(data: UserDto) {
     const existingUser = await this.prisma.user.findFirst({
       where: {
         OR: [{ username: data.username }, { email: data.email }],
@@ -36,9 +35,7 @@ export class UserService {
 
     delete user.password;
 
-    return {
-      user,
-    };
+    return user;
   }
 
   async findAll(): Promise<Omit<User, 'password'>[]> {
