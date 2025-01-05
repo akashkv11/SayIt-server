@@ -6,7 +6,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @WebSocketGateway({
   cors: {
@@ -58,18 +58,40 @@ export class ChatGateway {
   }
   // Listen for incoming messages
   @SubscribeMessage('sendMessage')
-  async handleMessage(client: Socket, payload: string): Promise<void> {
+  async handleMessage(
+    client: Socket,
+    payload: { content: string; recipientId: string },
+  ): Promise<void> {
     console.log('Message received:', payload);
+
+    // Get the sender's ID from the socket client
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const senderId = Array.from(this.clients.entries()).find(
+      ([, socketId]) => socketId === client.id,
+    )?.[0];
+
+    if (!senderId) {
+      throw new Error('Sender not found');
+    }
 
     // Store the message in the database
     await this.prisma.message.create({
       data: {
-        content: payload,
-        type: 'BROADCAST',
+        content: payload.content,
+        sender_id: senderId,
+        recipient_id: payload.recipientId,
       },
     });
 
-    this.server.emit('receiveMessage', payload);
+    // Emit the message to the recipient if they are online
+    const recipientSocketId = this.clients.get(payload.recipientId);
+    if (recipientSocketId) {
+      this.server.to(recipientSocketId).emit('message', {
+        content: payload.content,
+        senderId,
+        recipientId: payload.recipientId,
+      });
+    }
   }
 
   @SubscribeMessage('sendDirectMessage')
@@ -87,9 +109,8 @@ export class ChatGateway {
     await this.prisma.message.create({
       data: {
         content: payload.message,
-        type: 'DIRECT',
-        senderId: senderId,
-        recipientId: payload.recipientId,
+        sender_id: senderId,
+        recipient_id: payload.recipientId,
       },
     });
 
