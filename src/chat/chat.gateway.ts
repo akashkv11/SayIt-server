@@ -1,6 +1,9 @@
+import { UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import {
   ConnectedSocket,
   MessageBody,
+  OnGatewayConnection,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -14,14 +17,34 @@ import { PrismaService } from 'src/prisma/prisma.service';
     credentials: true,
   },
 })
-export class ChatGateway {
+export class ChatGateway implements OnGatewayConnection {
   @WebSocketServer() server: Server;
   private clients = new Map<string, string>(); // Map of userId -> socketId
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+  ) {}
 
   handleConnection(client: any) {
-    console.log('Client connected:', client.id);
+    const token = client.handshake.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      client.disconnect();
+      throw new UnauthorizedException('No token provided');
+    }
+
+    try {
+      const user = this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET,
+      });
+      client.user = user; // Attach user info to the socket client
+    } catch (error) {
+      console.log('Error verifying token', error);
+
+      client.disconnect();
+      throw new Error(error);
+    }
   }
 
   @SubscribeMessage('register')

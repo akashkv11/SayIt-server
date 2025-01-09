@@ -17,6 +17,13 @@ async function bootstrap() {
   // );
   dotenv.config();
 
+  app.enableCors({
+    origin: 'http://localhost:5173', // Replace with your client's URL
+    credentials: true, // Allow cookies to be sent with requests
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: 'Content-Type, Authorization',
+  });
+
   app.useGlobalPipes(new CustomValidationPipe());
   app.useGlobalInterceptors(new SuccessResponseInterceptor());
 
