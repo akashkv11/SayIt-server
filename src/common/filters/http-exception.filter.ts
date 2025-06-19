@@ -24,13 +24,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         ? exception.getResponse()
         : 'Internal server error';
 
-    response
-      .status(status)
-      .json({
-        statusCode: status,
-        timestamp: new Date().toISOString(),
-        path: ctx.getRequest().url,
-        message: typeof message === 'object' ? message : { message },
-      });
+    response.status(status).json({
+      statusCode: status,
+      timestamp: new Date().toISOString(),
+      path: ctx.getRequest().url,
+      message: typeof message === 'object' ? message : { message },
+    });
   }
 }

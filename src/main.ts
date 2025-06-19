@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import * as dotenv from 'dotenv';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
