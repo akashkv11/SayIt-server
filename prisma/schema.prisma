@@ -14,23 +14,23 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 model User {
-  user_id          String   @id @default(uuid()) // Unique identifier for the user
-  user_username    String   @unique              // Username (unique constraint)
-  user_email       String?  @unique              // Optional email
-  user_password    String?                       // Optional password (hashed)
-  user_is_online    Boolean  @default(false)      // Online status
-  user_created_at   DateTime @default(now())      // Timestamp when the user was created
-  user_updated_at   DateTime @updatedAt           // Timestamp when the user was last updated
+  id          String   @id @default(uuid()) // Unique identifier for the user
+  username    String   @unique              // Username (unique constraint)
+  email       String?  @unique              // Optional email
+  password    String?                       // Optional password (hashed)
+  is_online    Boolean  @default(false)      // Online status
+  created_at   DateTime @default(now())      // Timestamp when the user was created
+  updated_at   DateTime @updatedAt           // Timestamp when the user was last updated
   sent_messages     Message[] @relation("sent_messages") // Relationship for messages sent by this user
   received_messages Message[] @relation("received_messages") // Relationship for messages received by this user
 }
 model Message {
-  message_id          String   @id @default(uuid()) // Unique identifier for the message
-  message_sender_id    String                              // ID of the sender
-  message_recipient_id String                              // ID of the recipient
-  message_content     String                              // The content of the message
-  message_created_at   DateTime @default(now())            // Timestamp when the message was created
-  sender      User     @relation("sent_messages", fields: [message_sender_id], references: [user_id])
-  recipient   User     @relation("received_messages", fields: [message_recipient_id], references: [user_id])
+  id          String   @id @default(uuid()) // Unique identifier for the message
+  sender_id    String                              // ID of the sender
+  recipient_id String                              // ID of the recipient
+  content     String                              // The content of the message
+  created_at   DateTime @default(now())            // Timestamp when the message was created
+  sender      User     @relation("sent_messages", fields: [sender_id], references: [id])
+  recipient   User     @relation("received_messages", fields: [recipient_id], references: [id])
 }
 
