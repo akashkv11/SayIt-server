@@ -4,9 +4,19 @@ import { AppService } from './app.service';
 import { ChatGateway } from './chat/chat.gateway';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { PrismaModule } from './prisma/prisma.module';
+import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    PrismaModule,
+    UserModule,
+    AuthModule,
+  ],
   controllers: [AppController],
   providers: [
     AppService,
@@ -15,7 +25,7 @@ import { PrismaModule } from './prisma/prisma.module';
       provide: IoAdapter,
       useValue: new IoAdapter({
         cors: {
-          origin: 'http://localhost:5173', // Adjust to match your frontend
+          origin: 'http://localhost:5173',
           methods: ['GET', 'POST'],
         },
       }),
