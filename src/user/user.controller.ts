@@ -12,6 +12,7 @@ import { UserService } from './user.service';
 import { Prisma } from '@prisma/client';
 import { AuthGuard } from '../auth/auth.guard';
 import { UserDto } from './dto/user.dto';
+import { GetUser } from 'src/common/decorators/user-decorator';
 
 @Controller('users')
 export class UserController {
@@ -24,8 +25,10 @@ export class UserController {
 
   @UseGuards(AuthGuard)
   @Get()
-  findAll() {
-    return this.userService.findAll();
+  findAll(
+    @GetUser('id') currentUser: string, // Get the current user's ID
+  ) {
+    return this.userService.findAll(currentUser);
   }
 
   @UseGuards(AuthGuard)

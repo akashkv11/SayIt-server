@@ -32,8 +32,10 @@ export class UserService {
     return { user };
   }
 
-  async findAll(): Promise<Omit<User, 'password'>[]> {
-    const users = await this.prisma.user.findMany();
+  async findAll(currentUser: string): Promise<Omit<User, 'password'>[]> {
+    const users = await this.prisma.user.findMany({
+      where: { id: { not: currentUser } },
+    });
     return users.map((user) => {
       delete user.password;
       return user;
