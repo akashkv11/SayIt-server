@@ -77,8 +77,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       throw new WsException('Sender not identified');
     }
 
-    console.log('Message received:', payload);
-
     // Store the message
     const message = await this.prisma.message.create({
       data: {

@@ -66,4 +66,19 @@ export class UserService {
   async remove(id: string): Promise<void> {
     await this.prisma.user.delete({ where: { id } });
   }
+
+  async getUserChats(currentUserId: string, targetUserId: string) {
+    const chats = await this.prisma.message.findMany({
+      where: {
+        OR: [
+          { sender_id: currentUserId, recipient_id: targetUserId },
+          { sender_id: targetUserId, recipient_id: currentUserId },
+        ],
+      },
+      orderBy: {
+        created_at: 'asc',
+      },
+    });
+    return chats;
+  }
 }

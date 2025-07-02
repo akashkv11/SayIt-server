@@ -51,4 +51,13 @@ export class UserController {
   remove(@Param('id') id: string) {
     return this.userService.remove(id);
   }
+
+  @UseGuards(AuthGuard)
+  @Get('messages/:targetUser')
+  getMessages(
+    @Param('targetUser') targetUser: string,
+    @GetUser('currentUserId') currentUserId: string,
+  ) {
+    return this.userService.getUserChats(currentUserId, targetUser);
+  }
 }
